@@ -69,6 +69,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <float.h>
 
 #if defined (_WIN32)
 #include <windows.h>

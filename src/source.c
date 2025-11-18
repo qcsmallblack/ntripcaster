@@ -66,6 +66,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <float.h>
 
 #ifndef _WIN32
 #include <sys/socket.h> 
