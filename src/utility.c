@@ -73,6 +73,7 @@
 # include <sys/stat.h>
 # include <time.h>
 # include <errno.h>
+# include <math.h>
 #else
 # include <winsock.h>
 # include <io.h>
