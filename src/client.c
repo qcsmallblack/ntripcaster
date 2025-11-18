@@ -116,6 +116,100 @@ usertree_t *usertree = NULL;
 time_t lastrehash = 0;
 
 /* mount.c. ajd ****************************************************/
+void client_auto_select_station(void *conarg) {
+	client_t *client;
+    int len = 0;
+	avl_traverser trav = {0};
+	connection_t *sourcecon, *con = (connection_t *)conarg;
+	connection_t *min_dist_con = NULL;
+	double min_distance = DBL_MAX;
+	mythread_t *mt;
+	double client_xyz[3];
+	double mount_xyz[3];
+        double distance = 0;
+
+	client = con->food.client;
+	if (!client->source) {
+        return;
+	}
+	con->food.client->thread = thread_self();
+	thread_init();
+
+	mt = thread_get_mythread ();
+
+	sock_set_blocking(con->sock, SOCK_NONBLOCK);
+
+	char gpgga[BUFSIZE];
+
+    double last_change_xyz[3];
+    client->last_change_pos.lat = 0.0;
+    client->last_change_pos.lng = 0.0;
+    client->last_change_pos.height = 0.0;
+
+    while(thread_alive(mt) && con && sock_valid(con->sock) && 
+            con->food.client->alive != CLIENT_DEAD) {
+
+        len = sock_read_lines(con->sock, gpgga, BUFSIZE);
+		pos_t pos;
+		if (parse_gpgga_msg(gpgga, &pos) != 0) {
+			continue;
+		}
+		client->pos.lat = pos.lat;
+		client->pos.lng = pos.lng;
+		client->pos.height = pos.height;
+
+		llh2xyz(client->pos.lat, client->pos.lng, client->pos.height, &client_xyz);
+
+        llh2xyz(client->last_change_pos.lat, client->last_change_pos.lng, client->last_change_pos.height, 
+                &last_change_xyz);
+        double dist_to_lastchange = compute_distance_xyz(client_xyz, last_change_xyz);
+
+        if (dist_to_lastchange > 50.0) {
+
+		    min_distance = DBL_MAX;
+
+		    while ((sourcecon = avl_traverse(info.sources, &trav)) != NULL) 
+		    {
+	
+		    	xa_debug(2, "DEBUG: Looking on mount [%s]", sourcecon->food.source->audiocast.mount);
+
+                get_mount_location_from_file(info.mountposfile, 
+                        sourcecon->food.source->audiocast.mount, &sourcecon->food.source->pos);
+	
+		    	/****************get nearest mount*************************/
+		    	llh2xyz(sourcecon->food.source->pos.lat, sourcecon->food.source->pos.lng,
+		    			sourcecon->food.source->pos.height, &mount_xyz);
+
+		    	distance = compute_distance_xyz(client_xyz, mount_xyz);
+                if (distance < min_distance) {
+		    	   min_distance = distance;
+		    	   min_dist_con = sourcecon;
+		    	}
+		    }
+
+		    thread_mutex_lock(&client->mutex);
+            if (min_dist_con != NULL && min_dist_con->food.source != NULL && 
+                    client != NULL && client->source != NULL &&
+		    	ice_strcmp(min_dist_con->food.source->audiocast.mount, client->source->audiocast.mount) != 0) {
+		    	if (avl_delete(client->source->clients, con)){
+		    		client->source->stats.client_connections--;
+		    		client->source = min_dist_con->food.source;
+		    		avl_insert(min_dist_con->food.source->clients, con);
+		    		min_dist_con->food.source->stats.client_connections++;
+		    		xa_debug(2, "client [%s] change to %s\n", con_host(con), client->source->audiocast.mount);
+		    		write_log(LOG_DEFAULT, "client [%s] change to %s\n", con_host(con), client->source->audiocast.mount);
+                    client->last_change_pos.lat = client->pos.lat;
+                    client->last_change_pos.lng = client->pos.lng;
+                    client->last_change_pos.height = client->pos.height;
+		    	}
+		    }
+		    thread_mutex_unlock(&client->mutex);
+		    sleep(info.read_gpgga_interval);
+        }
+	}
+	thread_exit(0);
+    return;
+}
 
 
 void client_login(connection_t *con, char *expr)
@@ -191,6 +285,29 @@ void client_login(connection_t *con, char *expr)
 //	thread_mutex_lock (&info.mount_mutex);
 	thread_mutex_lock (&info.source_mutex);
 
+    /*************for auto-change mount point************/
+    if (ice_strcmp(info.auto_mount, "true") == 0) {
+        // check mount point exists
+        // not use mount_exists(req.path), because it will enter dead lock
+        avl_traverser tmp_trav = {0};
+        connection_t *tmp_con;
+        int mount_exists = 0;
+        while ((tmp_con = avl_traverse(info.sources, &tmp_trav)) != NULL){
+            if (ice_strcmp(req.path, tmp_con->food.source->audiocast.mount) == 0) {
+                mount_exists = 1;
+            }
+        }
+          
+        if (mount_exists == 0) {
+            printf("mount point not exists, auto select one\n");
+            avl_traverser tmp_trav = {0};
+            connection_t *tmp_con;
+            while ((tmp_con = avl_traverse(info.sources, &tmp_trav)) != NULL){
+                strcpy(req.path, tmp_con->food.source->audiocast.mount);
+            }
+        }
+    }
+
 	if (req.new_path[0][0] == '\0') {
 		source_arr[0] = find_mount_with_req(&req);
     } else {
@@ -245,6 +362,9 @@ void client_login(connection_t *con, char *expr)
     		util_increase_total_clients ();
     		write_log(LOG_DEFAULT, "Accepted client %d [%s] from [%s] on mountpoint [%s]. %d clients connected.", con_arr[i]->id,
                           nullcheck_string(con_arr[i]->user), con_host (con_arr[i]), source_arr[i]->food.source->audiocast.mount, info.num_clients);
+			 if (ice_strcmp(info.auto_mount, "true") == 0) {
+        		client_auto_select_station(con_arr[i]);
+    		}	
     	}
     }
 	thread_mutex_unlock (&info.source_mutex);

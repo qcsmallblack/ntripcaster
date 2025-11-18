@@ -188,6 +188,7 @@ void source_login(connection_t *con, char *expr)
 				return;
 			}
 			if (source->type == encoder_e) go_on = 1;
+			get_mount_location_from_file(info.mountposfile, source->audiocast.mount, &source->pos);
 		}
 
 		else if (strncasecmp(command, "Source-Agent", 12) == 0)

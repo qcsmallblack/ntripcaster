@@ -1176,6 +1176,9 @@ set_element configfile_settings[] =
 	{ "rp_email", string_e, "Resposible person email", NULL},
   { "server_url", string_e, "URL for this NtripCaster server", NULL},
 	{ "logdir", string_e, "Directory for log files", NULL},
+	{ "mountposfile", string_e, "file for mount position file", NULL},
+    { "auto_mount", string_e, "auto-change station", NULL},
+    { "read_gpgga_interval", integer_e, "interval for reading client gpgga message", NULL},
 	{ (char *) NULL, 0, (char *) NULL, NULL }
 };
 
@@ -1194,6 +1197,9 @@ setup_config_file_settings()
 	configfile_settings[x++].setting = &info.rp_email;
 	configfile_settings[x++].setting = &info.server_url;
 	configfile_settings[x++].setting = &info.logdir;
+	configfile_settings[x++].setting = &info.mountposfile;
+    configfile_settings[x++].setting = &info.auto_mount;
+    configfile_settings[x++].setting = &info.read_gpgga_interval;
 }
 
 set_element *

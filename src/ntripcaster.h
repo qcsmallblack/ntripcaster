@@ -174,6 +174,13 @@ typedef int sock_t;
 typedef sock_t SOCKET;
 #endif
 
+//add for auto change mount point
+typedef struct {
+    double lat;
+    double lng;
+    double height;
+} pos_t;
+
 typedef struct varpair_St
 {
 	char *name;
@@ -187,6 +194,7 @@ typedef struct request_St
 	char host[BUFSIZE];
 	char user[BUFSIZE];
 	int port;
+	pos_t pos;
 } request_t;
 
 typedef struct chunkSt
@@ -228,6 +236,7 @@ typedef struct source_St {
 	int cid;
 	int priority;
 	char *source_agent;
+	pos_t pos;
 
 } source_t;
 
@@ -242,6 +251,11 @@ typedef struct client_St {
 	unsigned long int write_bytes;	/* Number of bytes written to client */
 	int virgin;
 	source_t *source;        /* Pointer back to the source */
+	int data_send_times; //add for auto change station
+	mutex_t mutex;
+	icethread_t thread;
+	pos_t pos;
+    pos_t last_change_pos;
 } client_t;
 
 typedef struct connectionSt {
@@ -329,6 +343,10 @@ typedef struct {
 	int logfiledebuglevel;
 
 	int console_mode;
+
+	char *mountposfile;
+    char *auto_mount;
+    int read_gpgga_interval;
 
 } server_info_t;
 
