@@ -342,18 +342,22 @@ void client_login(connection_t *con, char *expr)
                           nullcheck_string(con_arr[i]->user), con_host (con_arr[i]), source_arr[i]->food.source->audiocast.mount, info.num_clients);
 	    } else {
 			kick_not_connected (con_arr[i], "Mountpoint illegal or full");
-			all_null = -1;
+			if (i == 0) {
+				all_null = -1;
+			}
 		}
     }
 	thread_mutex_unlock (&info.source_mutex);
 	thread_mutex_unlock (&info.double_mutex);
     if (all_null == 1) {
     	send_sourcetable(con);
-    } else {
+    } else if (all_null == 0) {
 		if (ice_strcmp(info.auto_mount, "true") == 0) {
 			write_log(LOG_DEFAULT, "Auto-change mountpoint enabled");
         	client_auto_select_station(con_arr[0]);
     	}	
+	} else {
+		write_log(LOG_DEFAULT, "Wrong Get");
 	}
 /*
 	// Change the sockaddr_in for the client to point to the port the client specified
