@@ -286,34 +286,6 @@ void client_login(connection_t *con, char *expr)
 //	thread_mutex_lock (&info.mount_mutex);
 	thread_mutex_lock (&info.source_mutex);
 
-    /*************for auto-change mount point************/
-    if (ice_strcmp(info.auto_mount, "true") == 0) {
-        // check mount point exists
-        // not use mount_exists(req.path), because it will enter dead lock
-        avl_traverser tmp_trav = {0};
-        connection_t *tmp_con;
-        int mount_exists = 0;
-        while ((tmp_con = avl_traverse(info.sources, &tmp_trav)) != NULL){
-            if (ice_strcmp(req.path, tmp_con->food.source->audiocast.mount) == 0) {
-                mount_exists = 1;
-            }
-        }
-          
-        if (mount_exists == 0) {
-            write_log(LOG_DEFAULT, "mount point not exists, auto select one from the same kind\n");
-            avl_traverser tmp_trav = {0};
-            connection_t *tmp_con;
-            while ((tmp_con = avl_traverse(info.sources, &tmp_trav)) != NULL && compare_path_prefix(req.path, tmp_con->food.source->audiocast.mount) == 1){
-                strcpy(req.path, tmp_con->food.source->audiocast.mount);
-				mount_exists = 1;
-				break;
-            }
-			if (mount_exists == 0) {
-				write_log(LOG_DEFAULT, "no matching mount point found for auto select\n");
-			}
-        }
-    }
-
 	if (req.new_path[0][0] == '\0') {
 		source_arr[0] = find_mount_with_req(&req);
     } else {
