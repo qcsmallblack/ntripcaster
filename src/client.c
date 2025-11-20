@@ -169,7 +169,7 @@ void client_auto_select_station(void *conarg) {
 
 		    min_distance = DBL_MAX;
 
-		    while ((sourcecon = avl_traverse(info.sources, &trav)) != NULL) 
+		    while ((sourcecon = avl_traverse(info.sources, &trav)) != NULL && compare_path_prefix(client->source->audiocast.mount, sourcecon->food.source->audiocast.mount) == 1)
 		    {
 	
 		    	xa_debug(2, "DEBUG: Looking on mount [%s]", sourcecon->food.source->audiocast.mount);
@@ -300,12 +300,16 @@ void client_login(connection_t *con, char *expr)
         }
           
         if (mount_exists == 0) {
-            write_log(LOG_DEFAULT, "mount point not exists, auto select one\n");
+            write_log(LOG_DEFAULT, "mount point not exists, auto select one from the same kind\n");
             avl_traverser tmp_trav = {0};
             connection_t *tmp_con;
-            while ((tmp_con = avl_traverse(info.sources, &tmp_trav)) != NULL){
+            while ((tmp_con = avl_traverse(info.sources, &tmp_trav)) != NULL && compare_path_prefix(req.path, tmp_con->food.source->audiocast.mount) == 1){
                 strcpy(req.path, tmp_con->food.source->audiocast.mount);
+				mount_exists = 1;
+				break;
             }
+			if (mount_exists == 0) {
+				write_log(LOG_DEFAULT, "no matching mount point found for auto select\n");
         }
     }
 

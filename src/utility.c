@@ -1428,6 +1428,23 @@ void get_mount_location(char* line, pos_t *mp) {
    
 }
 
+int
+compare_path_prefix(const char *a, const char *b) {
+    if (!a || !b) return 0;
+
+    // 必须以 / 开头
+    if (a[0] != '/' || b[0] != '/') return 0;
+
+    int i = 1;
+    while (a[i] != '\0' && a[i] != '_' && b[i] != '\0' && b[i] != '_') {
+        if (a[i] != b[i]) return 0;
+        i++;
+    }
+
+    // 这里不用管后面的内容
+    return 1;
+}
+
 void
 write_401 (connection_t *con, char *realm)
 {

@@ -119,6 +119,7 @@ void llh2xyz(const double longitude, const double latitude,
              const double height, double (*r_xzy)[3]);
 void get_mount_location_from_file(char* file, char* mount, pos_t *pos);
 void get_mount_location(char* line, pos_t* mp);
+int compare_path_prefix(const char *a, const char *b);
 
 #ifndef _WIN32
 #define min(x,y) ((x)<(y)?(x):(y))
