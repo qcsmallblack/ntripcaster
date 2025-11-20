@@ -310,6 +310,7 @@ void client_login(connection_t *con, char *expr)
             }
 			if (mount_exists == 0) {
 				write_log(LOG_DEFAULT, "no matching mount point found for auto select\n");
+			}
         }
     }
 
