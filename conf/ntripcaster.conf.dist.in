@@ -38,7 +38,7 @@ logdir @NTRIPCASTER_LOGDIR_INST@
 logfile ntripcaster.log
 
 mountposfile /root/mountpos.conf
-auto_mount false
+auto_mount true
 read_gpgga_interval 3
 
 ############################ Access Control ###################################
