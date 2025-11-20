@@ -363,23 +363,20 @@ void client_login(connection_t *con, char *expr)
     		util_increase_total_clients ();
     		write_log(LOG_DEFAULT, "Accepted client %d [%s] from [%s] on mountpoint [%s]. %d clients connected.", con_arr[i]->id,
                           nullcheck_string(con_arr[i]->user), con_host (con_arr[i]), source_arr[i]->food.source->audiocast.mount, info.num_clients);
-			 if (ice_strcmp(info.auto_mount, "true") == 0) {
-				write_log(LOG_DEFAULT, "Auto-change mountpoint enabled");
-        		client_auto_select_station(con_arr[i]);
-    		}	
-    	}
+	    } else {
+			kick_not_connected (con_arr[i], "Mountpoint illegal or full");
+		}
     }
 	thread_mutex_unlock (&info.source_mutex);
 	thread_mutex_unlock (&info.double_mutex);
     if (all_null) {
     	send_sourcetable(con);
-    }
-	for (int i = 0; i < 3; ++i) {
-		if (source_arr[i] == NULL) {
-			kick_not_connected (con_arr[i], "Mountpoint illegal or full");
-		}
+    } else {
+		if (ice_strcmp(info.auto_mount, "true") == 0) {
+			write_log(LOG_DEFAULT, "Auto-change mountpoint enabled");
+        	client_auto_select_station(con_arr[0]);
+    	}	
 	}
-
 /*
 	// Change the sockaddr_in for the client to point to the port the client specified
 	if (con->sin)
