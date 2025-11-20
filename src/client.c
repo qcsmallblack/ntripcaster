@@ -364,7 +364,7 @@ void client_login(connection_t *con, char *expr)
     		write_log(LOG_DEFAULT, "Accepted client %d [%s] from [%s] on mountpoint [%s]. %d clients connected.", con_arr[i]->id,
                           nullcheck_string(con_arr[i]->user), con_host (con_arr[i]), source_arr[i]->food.source->audiocast.mount, info.num_clients);
 			 if (ice_strcmp(info.auto_mount, "true") == 0) {
-				write_log("Auto-change mountpoint enabled");
+				write_log(LOG_DEFAULT, "Auto-change mountpoint enabled");
         		client_auto_select_station(con_arr[i]);
     		}	
     	}
