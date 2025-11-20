@@ -342,11 +342,12 @@ void client_login(connection_t *con, char *expr)
                           nullcheck_string(con_arr[i]->user), con_host (con_arr[i]), source_arr[i]->food.source->audiocast.mount, info.num_clients);
 	    } else {
 			kick_not_connected (con_arr[i], "Mountpoint illegal or full");
+			all_null = -1;
 		}
     }
 	thread_mutex_unlock (&info.source_mutex);
 	thread_mutex_unlock (&info.double_mutex);
-    if (all_null) {
+    if (all_null == 1) {
     	send_sourcetable(con);
     } else {
 		if (ice_strcmp(info.auto_mount, "true") == 0) {
