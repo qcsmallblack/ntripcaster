@@ -300,7 +300,7 @@ void client_login(connection_t *con, char *expr)
         }
           
         if (mount_exists == 0) {
-            printf("mount point not exists, auto select one\n");
+            write_log(LOG_DEFAULT, "mount point not exists, auto select one\n");
             avl_traverser tmp_trav = {0};
             connection_t *tmp_con;
             while ((tmp_con = avl_traverse(info.sources, &tmp_trav)) != NULL){
