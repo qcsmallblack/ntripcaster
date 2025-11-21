@@ -117,17 +117,18 @@ usertree_t *usertree = NULL;
 time_t lastrehash = 0;
 
 /* mount.c. ajd ****************************************************/
-void client_auto_select_station(void *conarg) {
+void client_auto_select_station(void **conarg) {
 	client_t *client;
     int len = 0;
 	avl_traverser trav = {0};
-	connection_t *sourcecon, *con = (connection_t *)conarg;
-	connection_t *min_dist_con = NULL;
-	double min_distance = DBL_MAX;
+	connection_t *sourcecon, **con_arr = (connection_t **)conarg;
+	connection_t *con = con_arr[0];
+	connection_t *top3_min_dist_con[3] = {NULL, NULL, NULL};
+	double top3_min_distance[3] = {DBL_MAX, DBL_MAX, DBL_MAX};
 	mythread_t *mt;
 	double client_xyz[3];
 	double mount_xyz[3];
-        double distance = 0;
+    double distance = 0;
 
 	client = con->food.client;
 	if (!client->source) {
@@ -167,7 +168,11 @@ void client_auto_select_station(void *conarg) {
 
         if (dist_to_lastchange > 50.0) {
 
-		    min_distance = DBL_MAX;
+		    for (int i = 0; i < 3; i++) {
+                top3_min_dist_con[i] = NULL;
+                top3_min_distance[i] = DBL_MAX;
+            }
+
 
 		    while ((sourcecon = avl_traverse(info.sources, &trav)) != NULL && compare_path_prefix(client->source->audiocast.mount, sourcecon->food.source->audiocast.mount) == 1)
 		    {
@@ -182,28 +187,45 @@ void client_auto_select_station(void *conarg) {
 		    			sourcecon->food.source->pos.height, &mount_xyz);
 
 		    	distance = compute_distance_xyz(client_xyz, mount_xyz);
-                if (distance < min_distance) {
-		    	   min_distance = distance;
-		    	   min_dist_con = sourcecon;
-		    	}
+                // 插入 top3
+                for (int i = 0; i < 3; i++) {
+                    if (distance < top3_min_distance[i]) {
+                        // 后移
+                        for (int j = 2; j > i; j--) {
+                            top3_min_distance[j] = top3_min_distance[j-1];
+                            top3_min_dist_con[j] = top3_min_dist_con[j-1];
+                        }
+                        top3_min_distance[i] = distance;
+                        top3_min_dist_con[i] = sourcecon;
+                        break;
+                    }
+                }
 		    }
 
-		    thread_mutex_lock(&client->mutex);
-            if (min_dist_con != NULL && min_dist_con->food.source != NULL && 
-                    client != NULL && client->source != NULL &&
-		    	ice_strcmp(min_dist_con->food.source->audiocast.mount, client->source->audiocast.mount) != 0) {
-		    	if (avl_delete(client->source->clients, con)){
-		    		client->source->stats.client_connections--;
-		    		client->source = min_dist_con->food.source;
-		    		avl_insert(min_dist_con->food.source->clients, con);
-		    		min_dist_con->food.source->stats.client_connections++;
-		    		xa_debug(2, "client [%s] change to %s\n", con_host(con), client->source->audiocast.mount);
-		    		write_log(LOG_DEFAULT, "client [%s] change to %s\n", con_host(con), client->source->audiocast.mount);
-                    client->last_change_pos.lat = client->pos.lat;
-                    client->last_change_pos.lng = client->pos.lng;
-                    client->last_change_pos.height = client->pos.height;
-		    	}
+		    
+			for (int i = 0; i < 3; i++) {
+				if (con_arr[i]->food.client != NULL) {
+					thread_mutex_lock(&con_arr[i]->food.client->mutex);
+					if (top3_min_dist_con[i] != NULL && top3_min_dist_con[i]->food.source != NULL && con_arr[i]->food.client->source != NULL &&
+		    			ice_strcmp(top3_min_dist_con[i]->food.source->audiocast.mount, con_arr[i]->food.client->source->audiocast.mount) != 0) {
+							if (avl_delete(con_arr[i]->food.client->source->clients, con_arr[i])) {
+		    					con_arr[i]->food.client->source->stats.client_connections--;
+		    					con_arr[i]->food.client->source = top3_min_dist_con[i]->food.source;
+		    					avl_insert(top3_min_dist_con[i]->food.source->clients, con_arr[i]);
+		    					top3_min_dist_con[i]->food.source->stats.client_connections++;
+		    					xa_debug(2, "client [%s] change to %s\n", con_host(con_arr[i]), con_arr[i]->food.client->source->audiocast.mount);
+		    					write_log(LOG_DEFAULT, "client [%s] change to %s\n", con_host(con_arr[i]), con_arr[i]->food.client->source->audiocast.mount);
+                    			con_arr[i]->food.client->last_change_pos.lat = con_arr[i]->food.client->pos.lat;
+                    			con_arr[i]->food.client->last_change_pos.lng = con_arr[i]->food.client->pos.lng;
+                    			con_arr[i]->food.client->last_change_pos.height = con_arr[i]->food.client->pos.height;
+		    				}
+					}
+				}
+
+		    	
 		    }
+			}
+            
 		    thread_mutex_unlock(&client->mutex);
 		    sleep(info.read_gpgga_interval);
         }
@@ -342,6 +364,7 @@ void client_login(connection_t *con, char *expr)
                           nullcheck_string(con_arr[i]->user), con_host (con_arr[i]), source_arr[i]->food.source->audiocast.mount, info.num_clients);
 	    } else {
 			kick_not_connected (con_arr[i], "Mountpoint illegal or full");
+			con_arr[i] = NULL;
 			if (i == 0) {
 				all_null = -1;
 			}
@@ -354,7 +377,7 @@ void client_login(connection_t *con, char *expr)
     } else if (all_null == 0) {
 		if (ice_strcmp(info.auto_mount, "true") == 0) {
 			write_log(LOG_DEFAULT, "Auto-change mountpoint enabled");
-        	client_auto_select_station(con_arr[0]);
+        	client_auto_select_station(con_arr);
     	}	
 	} else {
 		write_log(LOG_DEFAULT, "Wrong Get");
