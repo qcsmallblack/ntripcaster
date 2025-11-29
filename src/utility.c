@@ -1376,11 +1376,11 @@ void get_mount_location_from_file(char* file, char* mount, pos_t *pos) {
     int lineno = 0;
     xa_debug (1, "DEBUG: Parsing mount location file %s", file ? file : "(null)");
     if (!file) {
-        return;
+        goto fail;
     }
     if ((mf = open_for_reading(file)) == -1) {
         write_log(LOG_DEFAULT, "No mount location file found.");
-        return;
+        goto fail;
     }
     while (fd_read_line(mf, line, BUFSIZE) > 0) {
         lineno++;
@@ -1396,6 +1396,11 @@ void get_mount_location_from_file(char* file, char* mount, pos_t *pos) {
         }
     }
     close(mf);
+fail:
+    pos->lat = -365;
+    pos->lng = -365;
+    pos->height = -3650;
+    return;
 }
 
 void get_mount_location(char* line, pos_t *mp) {

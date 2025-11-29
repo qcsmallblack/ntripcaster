@@ -173,11 +173,14 @@ void client_auto_select_station(void *conarg) {
 		    {
 	
 		    	xa_debug(2, "DEBUG: Looking on mount [%s]", sourcecon->food.source->audiocast.mount);
-
+				
+		    	/****************get nearest mount*************************/
                 get_mount_location_from_file(info.mountposfile, 
                         sourcecon->food.source->audiocast.mount, &sourcecon->food.source->pos);
+				if (sourcecon->food.source->pos.lat < -180 || sourcecon->food.source->pos.lng < -90) {
+    				continue;  // 地理位置无效，跳过该 source
+				}
 	
-		    	/****************get nearest mount*************************/
 		    	llh2xyz(sourcecon->food.source->pos.lat, sourcecon->food.source->pos.lng,
 		    			sourcecon->food.source->pos.height, &mount_xyz);
 
