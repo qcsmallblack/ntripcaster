@@ -1389,7 +1389,18 @@ void get_mount_location_from_file(char* file, char* mount, pos_t *pos) {
         if (line[ice_strlen(line) - 1] == '\n') {
             line[ice_strlen(line) - 1] = '\0';
         }
-        if (ice_strncmp(line, mount, ice_strlen(mount)) == 0) {
+		char mountname_in_line[BUFSIZE];
+		char *colon_pos = strchr(line, ':'); // 找到冒号位置
+		if (colon_pos != NULL) {
+    		size_t len = colon_pos - line;          // 冒号之前的长度
+    		strncpy(mountname_in_line, line, len);  // 拷贝冒号前的内容
+    		mountname_in_line[len] = '\0';          // 结尾
+		} else {
+    		strncpy(mountname_in_line, line, BUFSIZE);
+    		mountname_in_line[BUFSIZE-1] = '\0';
+		}
+		
+        if (ice_strncmp(mountname_in_line, mount, ice_strlen(mount)) == 0) {
             get_mount_location(line, pos);
             close(mf);
             return;

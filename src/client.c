@@ -155,6 +155,7 @@ void client_auto_select_station(void *conarg) {
 		if (parse_gpgga_msg(gpgga, &pos) != 0) {
 			continue;
 		}
+		trav = {0}; // <--- 重置
 		client->pos.lat = pos.lat;
 		client->pos.lng = pos.lng;
 		client->pos.height = pos.height;
@@ -169,9 +170,11 @@ void client_auto_select_station(void *conarg) {
 
 		    min_distance = DBL_MAX;
 
-		    while ((sourcecon = avl_traverse(info.sources, &trav)) != NULL && compare_path_prefix(client->source->audiocast.mount, sourcecon->food.source->audiocast.mount) == 1)
+		    while ((sourcecon = avl_traverse(info.sources, &trav)) != NULL)
 		    {
-	
+				if (compare_path_prefix(client->source->audiocast.mount, sourcecon->food.source->audiocast.mount) != 1) {
+					continue;
+				}
 		    	xa_debug(2, "DEBUG: Looking on mount [%s]", sourcecon->food.source->audiocast.mount);
 				
 		    	/****************get nearest mount*************************/
@@ -180,7 +183,8 @@ void client_auto_select_station(void *conarg) {
 				if (sourcecon->food.source->pos.lat < -90 || sourcecon->food.source->pos.lng < -180) {
     				continue;  // 地理位置无效，跳过该 source
 				} else {
-					write_log(LOG_DEFAULT, "Valid mount: %s\n", sourcecon->food.source->audiocast.mount);
+					write_log(LOG_DEFAULT, "Valid mount: %s; position is %d, %d, %d\n", sourcecon->food.source->audiocast.mount, 
+							sourcecon->food.source->pos.lat, sourcecon->food.source->pos.lng, sourcecon->food.source->pos.height);
 				}
 	
 		    	llh2xyz(sourcecon->food.source->pos.lat, sourcecon->food.source->pos.lng,
