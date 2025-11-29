@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install -y vim && \
     rm -rf /var/lib/apt/lists/*
     
-RUN git clone https://github.com/qcsmallblack/ntripcaster.git \ 
+RUN git clone -b stable https://github.com/qcsmallblack/ntripcaster.git \ 
 && cd ${BUILDPATH} && ./configure && make && make install \ 
 && cd ${INSTALLPATH} && mv conf/ntripcaster.conf.dist conf/ntripcaster.conf && mv conf/sourcetable.dat.dist conf/sourcetable.dat 
 
