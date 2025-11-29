@@ -201,10 +201,9 @@ void client_auto_select_station(void **conarg) {
                     }
                 }
 		    }
-
 		    
 			for (int i = 0; i < 3; i++) {
-				if (con_arr[i]->food.client != NULL) {
+				if (con_arr[i] != NULL && con_arr[i]->food.client != NULL) {
 					thread_mutex_lock(&con_arr[i]->food.client->mutex);
 					if (top3_min_dist_con[i] != NULL && top3_min_dist_con[i]->food.source != NULL && con_arr[i]->food.client->source != NULL &&
 		    			ice_strcmp(top3_min_dist_con[i]->food.source->audiocast.mount, con_arr[i]->food.client->source->audiocast.mount) != 0) {
@@ -219,14 +218,10 @@ void client_auto_select_station(void **conarg) {
                     			con_arr[i]->food.client->last_change_pos.lng = con_arr[i]->food.client->pos.lng;
                     			con_arr[i]->food.client->last_change_pos.height = con_arr[i]->food.client->pos.height;
 		    				}
-					}
-				}
-
-		    	
+						}
+				}    	
 		    }
-			}
-            
-		    thread_mutex_unlock(&client->mutex);
+            thread_mutex_unlock(&client->mutex);
 		    sleep(info.read_gpgga_interval);
         }
 	}
