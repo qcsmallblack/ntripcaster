@@ -177,8 +177,10 @@ void client_auto_select_station(void *conarg) {
 		    	/****************get nearest mount*************************/
                 get_mount_location_from_file(info.mountposfile, 
                         sourcecon->food.source->audiocast.mount, &sourcecon->food.source->pos);
-				if (sourcecon->food.source->pos.lat < -180 || sourcecon->food.source->pos.lng < -90) {
+				if (sourcecon->food.source->pos.lat < -90 || sourcecon->food.source->pos.lng < -180) {
     				continue;  // 地理位置无效，跳过该 source
+				} else {
+					write_log(LOG_DEFAULT, "Valid mount: %s\n", min_dist_con->food.source->audiocast.mount);
 				}
 	
 		    	llh2xyz(sourcecon->food.source->pos.lat, sourcecon->food.source->pos.lng,
