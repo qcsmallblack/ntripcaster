@@ -155,7 +155,7 @@ void client_auto_select_station(void *conarg) {
 		if (parse_gpgga_msg(gpgga, &pos) != 0) {
 			continue;
 		}
-		trav = {0}; // <--- 重置
+		memset(&trav, 0, sizeof(trav)); // <--- 重置
 		client->pos.lat = pos.lat;
 		client->pos.lng = pos.lng;
 		client->pos.height = pos.height;
