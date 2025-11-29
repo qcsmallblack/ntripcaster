@@ -208,11 +208,11 @@ void client_auto_select_station(void *conarg) {
 		    		min_dist_con->food.source->stats.client_connections++;
 		    		xa_debug(2, "client [%s] change to %s\n", con_host(con), client->source->audiocast.mount);
 		    		write_log(LOG_DEFAULT, "client [%s] change to %s\n", con_host(con), client->source->audiocast.mount);
-                    client->last_change_pos.lat = client->pos.lat;
-                    client->last_change_pos.lng = client->pos.lng;
-                    client->last_change_pos.height = client->pos.height;
 		    	}
 		    }
+			client->last_change_pos.lat = client->pos.lat;
+            client->last_change_pos.lng = client->pos.lng;
+            client->last_change_pos.height = client->pos.height;
 		    thread_mutex_unlock(&client->mutex);
 		    sleep(info.read_gpgga_interval);
         }
