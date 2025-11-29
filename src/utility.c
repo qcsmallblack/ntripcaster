@@ -1397,9 +1397,9 @@ void get_mount_location_from_file(char* file, char* mount, pos_t *pos) {
     }
     close(mf);
 fail:
-	pos->lat = 0.0;
-	pos->lng = 0.0;
-	pos->height = 0.0;
+	pos->lat = -365;
+	pos->lng = -365;
+	pos->height = -3650;
 }
 
 void get_mount_location(char* line, pos_t *mp) {
