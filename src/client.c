@@ -219,10 +219,10 @@ void client_auto_select_station(void **conarg) {
                     			con_arr[i]->food.client->last_change_pos.height = con_arr[i]->food.client->pos.height;
 		    				}
 						}
-				}    	
+				}
+				thread_mutex_unlock(&con_arr[i]->food.client->mutex);
+		    	sleep(info.read_gpgga_interval);    	
 		    }
-            thread_mutex_unlock(&client->mutex);
-		    sleep(info.read_gpgga_interval);
         }
 	}
 	thread_exit(0);
