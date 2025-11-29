@@ -180,7 +180,7 @@ void client_auto_select_station(void *conarg) {
 				if (sourcecon->food.source->pos.lat < -90 || sourcecon->food.source->pos.lng < -180) {
     				continue;  // 地理位置无效，跳过该 source
 				} else {
-					write_log(LOG_DEFAULT, "Valid mount: %s\n", min_dist_con->food.source->audiocast.mount);
+					write_log(LOG_DEFAULT, "Valid mount: %s\n", sourcecon->food.source->audiocast.mount);
 				}
 	
 		    	llh2xyz(sourcecon->food.source->pos.lat, sourcecon->food.source->pos.lng,
