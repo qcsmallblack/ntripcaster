@@ -669,7 +669,7 @@ authenticate_user_request(connection_t *con, request_t *req)
 	else {	
 		if (con_get_user(con, &checkuser) == NULL) return 0;
 
-		xa_debug(1, "DEBUG: Checking authentication for mount %s for user %s with pass %s", nullcheck_string (req->path), nullcheck_string (checkuser.name),
+		write_log(LOG_DEFAULT, "Checking authentication for mount %s for user %s with pass %s", nullcheck_string (req->path), nullcheck_string (checkuser.name),
 			nullcheck_string (checkuser.pass));
 
 		thread_mutex_lock(&authentication_mutex);
