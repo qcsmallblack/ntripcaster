@@ -126,11 +126,11 @@ MYSQL* mysql_connect_init() {
     }
 
     if (!mysql_real_connect(conn,
-            "mysql",
-            "root",
-            "root@123",
-            "occ-backend",
-            3306,
+            info.database_ip,
+            info.database_user,
+            info.database_pass,
+            info.database_name,
+            info.database_port,
             NULL, 0)) {
 
         write_log(LOG_DEFAULT, "MySQL connection error: %s", mysql_error(conn));
@@ -144,8 +144,8 @@ MYSQL* mysql_connect_init() {
 int mysql_auth_mount_user(MYSQL *conn, const char *mount, const char *user, const char *pass) {
     char query[512];
     snprintf(query, sizeof(query),
-             "SELECT 1 FROM mount_users WHERE mount='%s' AND username='%s' AND password='%s' LIMIT 1",
-             mount, user, pass);
+             "SELECT 1 FROM %s WHERE mount='%s' AND username='%s' AND password='%s' LIMIT 1",
+             info.database_table, mount, user, pass);
 
     if (mysql_query(conn, query)) {
         write_log(LOG_DEFAULT, "MySQL query error: %s", mysql_error(conn));
