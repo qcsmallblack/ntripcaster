@@ -7,7 +7,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
     
 RUN git clone -b login https://github.com/qcsmallblack/ntripcaster.git \ 
-&& cd ${BUILDPATH} && autoupdate && autoreconf -fi && ./configure && make && make install \ 
+&& cd ${BUILDPATH} && aclocal && automake --add-missing && autoreconf && ./configure && make && make install \ 
 && cd ${INSTALLPATH} && mv conf/ntripcaster.conf.dist conf/ntripcaster.conf && mv conf/sourcetable.dat.dist conf/sourcetable.dat 
 
 EXPOSE 50024
