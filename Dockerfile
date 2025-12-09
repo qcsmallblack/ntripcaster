@@ -3,7 +3,7 @@ ARG BUILDPATH=/ntripcaster
 ARG INSTALLPATH=/usr/local/ntripcaster 
 
 RUN apt-get update && \
-    apt-get install -y vim libmysqlclient-dev && \
+    apt-get install -y vim libmariadb-dev libmariadb-dev-compat && \
     rm -rf /var/lib/apt/lists/*
     
 RUN git clone -b stable https://github.com/qcsmallblack/ntripcaster.git \ 
