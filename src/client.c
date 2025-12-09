@@ -126,10 +126,10 @@ MYSQL* mysql_connect_init() {
     }
 
     if (!mysql_real_connect(conn,
-            "localhost",
+            "mysql",
             "root",
             "root@123",
-            "ntrip_auth",
+            "occ-backend",
             3306,
             NULL, 0)) {
 
