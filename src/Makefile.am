@@ -14,3 +14,5 @@ ntripcaster_SOURCES = main.c client.c source.c connection.c log.c \
 INCLUDES = -D_REENTRANT @WRAPINCLUDES@
 
 bindir=$(NTRIPCASTER_BINDIR)
+
+LDADD = -lmariadb

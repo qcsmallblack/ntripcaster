@@ -97,7 +97,7 @@ LDFLAGS =
 LIBS = -lm  
 ntripcaster_OBJECTS =  main.o client.o source.o connection.o log.o \
 sock.o threads.o utility.o avl.o timer.o ntrip_string.o
-ntripcaster_LDADD = $(LDADD) -lmariadb
+ntripcaster_LDADD = $(LDADD)
 ntripcaster_DEPENDENCIES = 
 ntripcaster_LDFLAGS = 
 CFLAGS =    -g -O0 -Wall
