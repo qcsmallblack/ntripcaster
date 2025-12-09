@@ -15,3 +15,4 @@ INCLUDES = -D_REENTRANT @WRAPINCLUDES@
 
 bindir=$(NTRIPCASTER_BINDIR)
 
+ntripcaster_LDADD = -lmariadb
