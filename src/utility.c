@@ -1180,6 +1180,12 @@ set_element configfile_settings[] =
 	{ "mountposfile", string_e, "file for mount position file", NULL},
     { "auto_mount", string_e, "auto-change station", NULL},
     { "read_gpgga_interval", integer_e, "interval for reading client gpgga message", NULL},
+	{ "database_ip", string_e, "the ip of target authentication database", NULL},
+	{ "database_port", integer_e, "the port of target authentication database", NULL},
+	{ "database_user", string_e, "the user of target authentication database", NULL},
+	{ "database_pass", string_e, "the pass of target authentication database", NULL},
+	{ "database_name", string_e, "the name of target authentication database", NULL},
+	{ "database_table", string_e, "the table of target authentication database", NULL},
 	{ (char *) NULL, 0, (char *) NULL, NULL }
 };
 
@@ -1201,6 +1207,12 @@ setup_config_file_settings()
 	configfile_settings[x++].setting = &info.mountposfile;
     configfile_settings[x++].setting = &info.auto_mount;
     configfile_settings[x++].setting = &info.read_gpgga_interval;
+	configfile_settings[x++].setting = &info.database_ip;
+	configfile_settings[x++].setting = &info.database_port;
+	configfile_settings[x++].setting = &info.database_user;
+	configfile_settings[x++].setting = &info.database_pass;
+	configfile_settings[x++].setting = &info.database_name;
+	configfile_settings[x++].setting = &info.database_table;
 }
 
 set_element *

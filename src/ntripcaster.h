@@ -348,6 +348,14 @@ typedef struct {
     char *auto_mount;
     int read_gpgga_interval;
 
+	//database for authentication
+	char *database_ip;
+	int database_port;
+	char *database_user;
+	char *database_pass;
+	char *database_name;
+	char *database_table;
+
 } server_info_t;
 
 #endif

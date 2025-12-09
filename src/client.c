@@ -91,6 +91,8 @@
 #include "source.h"
 #include "sock.h"
 
+#include<mysql/mysql.h>
+
 /* basic.c. ajd ****************************************************/
 
 #ifndef __EXTENSIONS__
@@ -115,6 +117,50 @@ mounttree_t *mounttree = NULL;
 usertree_t *usertree = NULL;
 
 time_t lastrehash = 0;
+
+MYSQL* mysql_connect_init() {
+    MYSQL *conn = mysql_init(NULL);
+    if (!conn) {
+        write_log(LOG_DEFAULT, "MySQL init failed");
+        return NULL;
+    }
+
+    if (!mysql_real_connect(conn,
+            info.database_ip,
+            info.database_user,
+            info.database_pass,
+            info.database_name,
+            info.database_port,
+            NULL, 0)) {
+
+        write_log(LOG_DEFAULT, "MySQL connection error: %s", mysql_error(conn));
+        mysql_close(conn);
+        return NULL;
+    }
+
+    return conn;
+}
+
+int mysql_auth_mount_user(MYSQL *conn, const char *mount, const char *user, const char *pass) {
+    char query[512];
+    snprintf(query, sizeof(query),
+             "SELECT 1 FROM %s WHERE mount='%s' AND username='%s' AND password='%s' LIMIT 1",
+             info.database_table, mount, user, pass);
+
+    if (mysql_query(conn, query)) {
+        write_log(LOG_DEFAULT, "MySQL query error: %s", mysql_error(conn));
+        return 0;
+    }
+
+    MYSQL_RES *res = mysql_store_result(conn);
+    if (!res)
+        return 0;
+
+    int ok = mysql_num_rows(res) > 0;
+    mysql_free_result(res);
+
+    return ok;
+}
 
 /* mount.c. ajd ****************************************************/
 void client_auto_select_station(void *conarg) {
@@ -623,7 +669,7 @@ authenticate_user_request(connection_t *con, request_t *req)
 	else {	
 		if (con_get_user(con, &checkuser) == NULL) return 0;
 
-		xa_debug(1, "DEBUG: Checking authentication for mount %s for user %s with pass %s", nullcheck_string (req->path), nullcheck_string (checkuser.name),
+		write_log(LOG_DEFAULT, "Checking authentication for mount %s for user %s with pass %s", nullcheck_string (req->path), nullcheck_string (checkuser.name),
 			nullcheck_string (checkuser.pass));
 
 		thread_mutex_lock(&authentication_mutex);
@@ -633,6 +679,26 @@ authenticate_user_request(connection_t *con, request_t *req)
 		if (authuser != NULL) {
 
 			if ((strncmp(checkuser.name, authuser->name, BUFSIZE) == 0) && (strncmp(checkuser.pass, authuser->pass, BUFSIZE) == 0)) {
+				strncpy(req->user, checkuser.name, BUFSIZE);
+
+				thread_mutex_unlock(&authentication_mutex);
+
+				nfree(checkuser.name);
+				nfree(checkuser.pass);
+				return 1;
+			}
+		} else {
+			MYSQL *conn = mysql_connect_init();
+			if (!conn) {
+    			write_log(LOG_DEFAULT, "MySQL connection failed");
+    			return 0;  // 鉴权失败
+			}
+
+			int ok = mysql_auth_mount_user(conn, req->path, checkuser.name, checkuser.pass);
+
+			mysql_close(conn);
+
+			if (ok) {
 				strncpy(req->user, checkuser.name, BUFSIZE);
 
 				thread_mutex_unlock(&authentication_mutex);

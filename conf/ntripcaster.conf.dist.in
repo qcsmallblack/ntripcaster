@@ -41,6 +41,13 @@ mountposfile /root/mountpos.conf
 auto_mount true
 read_gpgga_interval 3
 
+database_ip mysql
+database_port 3306
+database_user root
+database_pass Mysql_root=root
+database_name occ-backend
+database_table mount_users
+
 ############################ Access Control ###################################
 # Here you specify which users have access to which mountpoints,
 # one line per mount.
